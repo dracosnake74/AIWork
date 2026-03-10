@@ -8,22 +8,12 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout 
-        uses: actions/checkout@v3
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      - name: Inject API Key
+      - name: Inject API Key to all HTML files
         run: |
-          if [ -f "index.html" ]; then
-            sed -i 's|</head>|<script>window.ENV_CONFIG={API_KEY:"${{ secrets.GEMINI_API_KEY }}"};</script></head>|g' index.html
-          fi
-          
-          if [ -f "beginner.html" ]; then
-            sed -i 's|</head>|<script>window.ENV_CONFIG={API_KEY:"${{ secrets.GEMINI_API_KEY }}"};</script></head>|g' beginner.html
-          fi
-
-          if [ -f "writing.html" ]; then
-            sed -i 's|</head>|<script>window.ENV_CONFIG={API_KEY:"${{ secrets.GEMINI_API_KEY }}"};</script></head>|g' writing.html
-          fi
+          find . -name "*.html" -exec sed -i 's|</head>|<script>window.ENV_CONFIG={API_KEY:"${{ secrets.GEMINI_API_KEY }}"};</script></head>|g' {} + || true
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
