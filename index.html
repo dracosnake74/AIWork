@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>AI 英語對話導師</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h2>AI 英語對話導師</h2>
+    
+    <div id="chat-box">
+        <div class="ai-msg">AI: Hello! 請點擊下方主題開始練習英語對話。</div>
+    </div>
+
+    <div id="theme-buttons">
+        <button onclick="startConversation('旅遊')">旅遊 (Travel)</button>
+        <button onclick="startConversation('美食')">美食 (Food)</button>
+    </div>
+
+<hr>
+    
+    <div id="input-area">
+        <input type="text" id="user-input" placeholder="Please speak or type in English...">
+        <button id="mic-btn" class="icon-btn" onclick="startVoiceRecognition()" title="Speak">🎤</button>
+        <button id="send-btn" class="icon-btn" onclick="sendUserMessage()" title="Send">Send</button>
+    </div>
+
+
+    <script src="script.js"></script>
+</body>
+</html>
