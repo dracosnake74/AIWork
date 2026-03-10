@@ -1,4 +1,5 @@
-const API_KEY = "AIzaSyAtA_LWZJZJyLo8bdkMnaneZbfL4XRsDRg"; 
+// --- 修改重點：優先讀取 GitHub Actions 注入的變數 ---
+const API_KEY = window.ENV_CONFIG?.API_KEY || "AIzaSyAtA_LWZJZJyLo8bdkMnaneZbfL4XRsDRg"; 
 // 使用 2.5 Flash 版本，速度快且對 JSON 格式支援度高
 const MODEL_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
 
@@ -30,8 +31,8 @@ async function evaluateWriting() {
         {
             "cefr": "Level (A1-C2)",
             "score": number (0-100),
-            "grammar": "Short comment on grammar (max 15 words)",
-            "advice": "One key suggestion (max 40 chars)"
+            "grammar": "Point out major errors and provide corrections (in Traditional Chinese)",
+            "advice": "General advice for improvement (in Traditional Chinese)"
         }
     `;
 
@@ -69,10 +70,11 @@ async function evaluateWriting() {
             scoreElement.style.color = "#d32f2f"; // 紅色 (需努力)
         }
 
-    } catch (error) {
-        console.error("Evaluation Error:", error);
-        document.getElementById('cefr-level').innerText = "Error";
-        document.getElementById('total-score').innerText = "!";
-        alert("Sorry, there was a problem with the AI connection. Please try again.");
+        // 捲動到結果區塊
+        resultArea.scrollIntoView({ behavior: 'smooth' });
+
+    } catch (e) {
+        console.error("Evaluation failed:", e);
+        alert("Evaluation failed. Please check your internet or try again later.");
     }
 }
