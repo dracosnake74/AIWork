@@ -11,9 +11,12 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Inject API Key to all HTML files
+      - name: Inject API Key
+        env:
+          MY_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          find . -name "*.html" -exec sed -i 's|</head>|<script>window.ENV_CONFIG={API_KEY:"${{ secrets.GEMINI_API_KEY }}"};</script></head>|g' {} + || true
+          # 使用環境變數注入，避免特殊字元造成 sed 失敗
+          find . -name "*.html" -exec sed -i "s|</head>|<script>window.ENV_CONFIG={API_KEY:\"$MY_KEY\"};</script></head>|g" {} +
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
