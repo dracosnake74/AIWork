@@ -1,0 +1,33 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ] # 當您推送到 main 分支時觸發
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 
+        uses: actions/checkout@v3
+
+      - name: Inject API Key
+        run: |
+          # 1. 處理首頁
+          sed -i 's|</head>|<script>window.ENV_CONFIG={API_KEY:"${{ secrets.GEMINI_API_KEY }}"};</script></head>|g' index.html
+          
+          # 2. 處理初學者頁面
+          if [ -f "beginner.html" ]; then
+            sed -i 's|</head>|<script>window.ENV_CONFIG={API_KEY:"${{ secrets.GEMINI_API_KEY }}"};</script></head>|g' beginner.html
+          fi
+
+          # 3. 處理寫作頁面 (新增的部分)
+          if [ -f "writing.html" ]; then
+            sed -i 's|</head>|<script>window.ENV_CONFIG={API_KEY:"${{ secrets.GEMINI_API_KEY }}"};</script></head>|g' writing.html
+          fi
+
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: . 
+          branch: gh-pages
