@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>AI 英語寫作評分 - Page 2</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* 寫作頁面專用微調 */
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            margin-bottom: 15px;
+            box-sizing: border-box; /* 確保 padding 不會撐破框框 */
+        }
+        #result-area {
+            background: #fff;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: none; /* 預設隱藏，評分完才顯示 */
+        }
+        .score-tag {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1a73e8;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <nav style="margin-bottom: 20px;">
+        <a href="index.html">⬅️ 返回對話練習</a>
+    </nav>
+
+    <h2>AI 英語寫作評分</h2>
+    
+    <div id="writing-area">
+        <input type="text" id="article-title" placeholder="請輸入文章標題..." style="width: 100%; margin-bottom: 10px; padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
+        <textarea id="article-content" placeholder="請在此貼上您的文章內容..."></textarea>
+        <button onclick="evaluateWriting()" style="width: 100%; padding: 15px; background: #1a73e8; color: white; border: none; border-radius: 30px; font-size: 18px; cursor: pointer;">開始評分 ✨</button>
+    </div>
+
+    <hr>
+
+<div id="result-area">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="score-tag" id="cefr-level">CEFR: --</div>
+        <div id="total-score-circle" style="text-align: center; background: #e8f0fe; padding: 10px 20px; border-radius: 50px;">
+            <span style="font-size: 14px; color: #555;">Total Score</span><br>
+            <span id="total-score" style="font-size: 32px; font-weight: bold; color: #d93025;">--</span>
+        </div>
+    </div>
+    
+    <div id="feedback-content">
+        <p><strong>單字與文法：</strong> <span id="grammar-check">--</span></p>
+        <p><strong>建議：</strong> <span id="suggestions">--</span></p>
+    </div>
+</div>
+
+    <script src="page2.js"></script>
+</body>
+</html>
