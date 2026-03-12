@@ -1,5 +1,5 @@
 diff --git a/.github/workflows/deploy.yml b/.github/workflows/deploy.yml
-index 03e23ea2ae8496b4a4d57c62728eda2eb6b2243e..6d30cc669045f2f47ef4c67fc030e097bb31be26 100644
+index 03e23ea2ae8496b4a4d57c62728eda2eb6b2243e..1ea95295159a002dcead16e0102cd92932ad9048 100644
 --- a/.github/workflows/deploy.yml
 +++ b/.github/workflows/deploy.yml
 @@ -1,22 +1,74 @@
@@ -61,7 +61,7 @@ index 03e23ea2ae8496b4a4d57c62728eda2eb6b2243e..6d30cc669045f2f47ef4c67fc030e097
 +          node --check script2.js
 +          node --check page2.js
 +
-+          if rg -n "^(diff --git|index [0-9a-f]+\.\.[0-9a-f]+|@@)" -- *.js *.html; then
++          if grep -nE "^(diff --git|index [0-9a-f]+\.\.[0-9a-f]+|@@)" *.js *.html; then
 +            echo "Found git diff markers in frontend files. Please remove them before deploy."
 +            exit 1
 +          fi
