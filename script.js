@@ -1,10 +1,14 @@
 // --- 修改重點：優先讀取 GitHub Actions 注入的變數 ---
-const API_KEY = window.ENV_CONFIG?.API_KEY || "AIzaSyAtA_LWZJZJyLo8bdkMnaneZbfL4XRsDRg"; 
+const API_KEY = window.ENV_CONFIG?.API_KEY || "";
 const MODEL_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
 let currentTopic = "";
 
 // --- 1. 核心 AI 呼叫 ---
 async function askAI(promptText) {
+    if (!API_KEY) {
+        throw new Error("Missing API key. Please set GEMINI_API_KEY in GitHub Actions Secrets and redeploy.");
+    }
+
     const response = await fetch(MODEL_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -14,7 +18,18 @@ async function askAI(promptText) {
         })
     });
     const data = await response.json();
-    return data.candidates[0].content.parts[0].text;
+
+    if (!response.ok) {
+        const apiMessage = data?.error?.message || `HTTP ${response.status}`;
+        throw new Error(apiMessage);
+    }
+
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) {
+        throw new Error("AI returned an empty response.");
+    }
+
+    return text;
 }
 
 // --- 2. 啟動對話 (移除問候模式) ---
@@ -69,7 +84,11 @@ async function translateMessage(text, containerElement, btnElement) {
         transDiv.innerText = "中文翻譯: " + chineseText.trim();
         containerElement.appendChild(transDiv);
         btnElement.style.display = 'none'; 
-    } catch (e) { btnElement.innerText = "Error"; btnElement.disabled = false; }
+    } catch (e) {
+        btnElement.innerText = "Translate failed";
+        btnElement.disabled = false;
+        console.error("Translate failed:", e);
+    }
 }
 
 function speakText(text) {
