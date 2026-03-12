@@ -1,25 +1,77 @@
-name: Deploy to GitHub Pages
-
-on:
-  push:
-    branches: [ main, master ]
-
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Inject API Key
-        env:
-          MY_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: |
-          # 使用環境變數注入，避免特殊字元造成 sed 失敗
-          find . -name "*.html" -exec sed -i "s|</head>|<script>window.ENV_CONFIG={API_KEY:\"$MY_KEY\"};</script></head>|g" {} +
-
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          branch: gh-pages
-          folder: .
+diff --git a/.github/workflows/deploy.yml b/.github/workflows/deploy.yml
+index 03e23ea2ae8496b4a4d57c62728eda2eb6b2243e..70f239f2db584a4c4281760e91b3e4e35ecff1e1 100644
+--- a/.github/workflows/deploy.yml
++++ b/.github/workflows/deploy.yml
+@@ -1,22 +1,63 @@
+ name: Deploy to GitHub Pages
+ 
+ on:
+   push:
+-    branches: [ main, master ]
++    branches: [main, master]
++  workflow_dispatch:
++
++permissions:
++  contents: read
++  pages: write
++  id-token: write
++
++concurrency:
++  group: pages
++  cancel-in-progress: true
+ 
+ jobs:
+-  build-and-deploy:
++  build:
+     runs-on: ubuntu-latest
++
+     steps:
+-      - name: Checkout Code
++      - name: Checkout code
+         uses: actions/checkout@v4
+ 
+-      - name: Inject API Key to all HTML files
++      - name: Inject API key to HTML files
++        env:
++          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+         run: |
+-          find . -name "*.html" -exec sed -i 's|</head>|<script>window.ENV_CONFIG={API_KEY:"${{ secrets.GEMINI_API_KEY }}"};</script></head>|g' {} + || true
++          python3 - <<'PY'
++          from pathlib import Path
+ 
+-      - name: Deploy to GitHub Pages
+-        uses: JamesIves/github-pages-deploy-action@v4
++          import os
++
++          api_key = os.getenv('GEMINI_API_KEY', '')
++          script = f'<script>window.ENV_CONFIG={{API_KEY:"{api_key}"}};</script>'
++          for html_path in Path('.').rglob('*.html'):
++              text = html_path.read_text(encoding='utf-8')
++              if 'window.ENV_CONFIG' in text:
++                  continue
++              if '</head>' in text:
++                  text = text.replace('</head>', f'{script}</head>', 1)
++                  html_path.write_text(text, encoding='utf-8')
++          PY
++
++      - name: Setup Pages
++        uses: actions/configure-pages@v5
++
++      - name: Upload Pages artifact
++        uses: actions/upload-pages-artifact@v3
+         with:
+-          branch: gh-pages
+-          folder: .
++          path: .
++
++  deploy:
++    environment:
++      name: github-pages
++      url: ${{ steps.deployment.outputs.page_url }}
++    runs-on: ubuntu-latest
++    needs: build
++
++    steps:
++      - name: Deploy to GitHub Pages
++        id: deployment
++        uses: actions/deploy-pages@v4
