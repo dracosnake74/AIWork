@@ -42,6 +42,17 @@ jobs:
                   html_path.write_text(text, encoding='utf-8')
           PY
 
+      - name: Validate frontend files before deploy
+        run: |
+          node --check script.js
+          node --check script2.js
+          node --check page2.js
+
+          if rg -n "^(diff --git|index [0-9a-f]+\.\.[0-9a-f]+|@@)" -- *.js *.html; then
+            echo "Found git diff markers in frontend files. Please remove them before deploy."
+            exit 1
+          fi
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
