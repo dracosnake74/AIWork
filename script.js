@@ -1,19 +1,9 @@
-// --- 優先讀取 GitHub Actions 注入的變數 ---
-// ⚠️ 絕對不要在這裡填寫實體金鑰，留空即可！
-const API_KEY = window.ENV_CONFIG?.API_KEY || ""; 
-
 let currentTopic = "";
 
-// --- 1. 核心 AI 呼叫 ---
+// --- 1. 核心 AI 呼叫 (改為呼叫自己的 Vercel 後端) ---
 async function askAI(promptText) {
-    if (!API_KEY) {
-        console.error("API Key 遺失！請確認 GitHub Secrets 設定。");
-        return "系統提示：API 金鑰遺失，無法連線。";
-    }
-
-    const MODEL_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
-
-    const response = await fetch(MODEL_URL, {
+    // 網址直接改成我們剛剛建立的後端檔案路徑
+    const response = await fetch('/api/gemini', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -23,7 +13,7 @@ async function askAI(promptText) {
     });
     
     if (!response.ok) {
-        throw new Error(`API 錯誤狀態碼：${response.status}`);
+        throw new Error(`連線錯誤：${response.status}`);
     }
     
     const data = await response.json();
@@ -143,5 +133,6 @@ async function sendUserMessage() {
         loadingMsg.innerHTML = `<div class="ai-msg">連線發生錯誤，請檢查網路。</div>`;
     }
 }
+
 
 
