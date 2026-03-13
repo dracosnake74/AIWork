@@ -1,7 +1,24 @@
-// --- 修改重點：優先讀取 GitHub Actions 注入的變數 ---
-const API_KEY = window.ENV_CONFIG?.API_KEY || "";
-const MODEL_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
 let currentTopic = "";
+
+// --- 1. 核心 AI 呼叫 (改為呼叫自己的 Vercel 後端) ---
+async function askAI(promptText) {
+    // 網址直接改成我們剛剛建立的後端檔案路徑
+    const response = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            contents: [{ parts: [{ text: promptText }] }],
+            generationConfig: { maxOutputTokens: 800, temperature: 0.7 }
+        })
+    });
+    
+    if (!response.ok) {
+        throw new Error(`連線錯誤：${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data.candidates[0].content.parts[0].text;
+}
 
 // --- 1. 核心 AI 呼叫 ---
 async function askAI(promptText) {
@@ -111,3 +128,4 @@ window.onload = () => {
     if (userInput) userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendUserMessage(); });
 
 };
+
