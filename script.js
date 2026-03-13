@@ -11,7 +11,7 @@ async function askAI(promptText) {
         return "系統提示：API 金鑰遺失，無法連線。";
     }
 
-    const MODEL_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
+    const MODEL_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
     const response = await fetch(MODEL_URL, {
         method: 'POST',
@@ -143,3 +143,4 @@ async function sendUserMessage() {
         loadingMsg.innerHTML = `<div class="ai-msg">連線發生錯誤，請檢查網路。</div>`;
     }
 }
+
