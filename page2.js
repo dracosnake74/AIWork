@@ -1,5 +1,5 @@
 // --- 修改重點：優先讀取 GitHub Actions 注入的變數 ---
-const API_KEY = window.ENV_CONFIG?.API_KEY || "AIzaSyAtA_LWZJZJyLo8bdkMnaneZbfL4XRsDRg"; 
+const API_KEY = window.ENV_CONFIG?.API_KEY || ""; 
 // 使用 2.5 Flash 版本，速度快且對 JSON 格式支援度高
 const MODEL_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
 
@@ -77,4 +77,5 @@ async function evaluateWriting() {
         console.error("Evaluation failed:", e);
         alert("Evaluation failed. Please check your internet or try again later.");
     }
+
 }
