@@ -1,5 +1,5 @@
 // --- 修改重點：優先讀取 GitHub Actions 注入的變數 ---
-const API_KEY = window.ENV_CONFIG?.API_KEY || "AIzaSyAtA_LWZJZJyLo8bdkMnaneZbfL4XRsDRg"; 
+const API_KEY = window.ENV_CONFIG?.API_KEY || "";
 const MODEL_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
 let currentTopic = "";
 
@@ -109,4 +109,5 @@ function startVoiceRecognition() { if (recognition) recognition.start(); }
 window.onload = () => {
     const userInput = document.getElementById('user-input');
     if (userInput) userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendUserMessage(); });
+
 };
