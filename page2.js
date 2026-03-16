@@ -1,8 +1,3 @@
-// --- 修改重點：優先讀取 GitHub Actions 注入的變數 ---
-const API_KEY = window.ENV_CONFIG?.API_KEY || ""; 
-// 使用 2.5 Flash 版本，速度快且對 JSON 格式支援度高
-const MODEL_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
-
 async function evaluateWriting() {
     const title = document.getElementById('article-title').value;
     const content = document.getElementById('article-content').value;
@@ -36,7 +31,8 @@ async function evaluateWriting() {
         }
     `;
 
-const response = await fetch('/api/gemini', {
+// 呼叫我們自己建立的 Vercel 後端 API
+        const response = await fetch('/api/gemini', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
