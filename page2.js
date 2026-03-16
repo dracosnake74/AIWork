@@ -25,25 +25,30 @@ async function evaluateWriting() {
         Return ONLY a JSON object with these keys:
         {
             "cefr": "Level (A1-C2)",
-            "score": number (0-100),
-            "grammar": "Point out major errors and provide corrections (in Traditional Chinese)",
-            "advice": "General advice for improvement (in Traditional Chinese)"
+            "score": "Total score out of 100 (number only)",
+            "grammar": "Point out grammar mistakes and corrections",
+            "advice": "General suggestions for improvement"
         }
     `;
 
-// 呼叫我們自己建立的 Vercel 後端 API
+    try {
+        // --- 核心修正：呼叫您建立的 Vercel 後端 API，不再直接呼叫 Google ---
         const response = await fetch('/api/gemini', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
         });
 
+        if (!response.ok) {
+            throw new Error(`伺服器連線錯誤：${response.status}`);
+        }
+
         const data = await response.json();
         
         // 取得 AI 回傳的文字
         let rawText = data.candidates[0].content.parts[0].text;
         
-        // --- 核心修正：清理 AI 可能帶有的 Markdown 標籤 ---
+        // --- 清理 AI 可能帶有的 Markdown 標籤 ---
         let cleanJson = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
         
         // 解析成 JavaScript 物件
@@ -62,16 +67,12 @@ async function evaluateWriting() {
         } else if (result.score >= 60) {
             scoreElement.style.color = "#f9a825"; // 黃色 (及格)
         } else {
-            scoreElement.style.color = "#d32f2f"; // 紅色 (需努力)
+            scoreElement.style.color = "#d32f2f"; // 紅色 (待加強)
         }
 
-        // 捲動到結果區塊
-        resultArea.scrollIntoView({ behavior: 'smooth' });
-
-    } catch (e) {
-        console.error("Evaluation failed:", e);
-        alert("Evaluation failed. Please check your internet or try again later.");
+    } catch (error) {
+        console.error("評分過程發生錯誤:", error);
+        document.getElementById('cefr-level').innerText = "Error";
+        document.getElementById('suggestions').innerText = "評分失敗，請檢查網路連線或稍後再試。";
     }
-
 }
-
