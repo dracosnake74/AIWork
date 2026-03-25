@@ -232,8 +232,12 @@
 
             appendMessage("ai", "思考中...");
 
-            // 給 AI 的隱藏指令，讓它開始出題
-            const startPrompt = "Let's play an English guessing game. Please pick a simple everyday object or food. Describe it in 1 or 2 simple sentences (A1 level). DO NOT say the word itself. Wait for me to guess.";
+            // --- 升級後的隱藏指令：強制標明類別並禁止廢話 ---
+            const startPrompt = `Let's play an English guessing game. Please secretly pick a simple everyday object, animal, or food. 
+            Rule 1: Start your response directly by stating its category. For example, exactly say "This is a food.", "This is an object.", or "This is an animal.". 
+            Rule 2: Do NOT use conversational fillers like "Okay, I've got one!", "Sure!", or "Let's play!".
+            Rule 3: Describe it in 1 or 2 simple sentences (A1 level). 
+            Rule 4: DO NOT say the word itself. Wait for me to guess.`;
             
             // 將我們的話加入歷史紀錄
             chatHistory.push({ role: "user", parts: [{ text: startPrompt }] });
