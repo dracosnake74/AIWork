@@ -175,8 +175,11 @@
             msgDiv.innerText = text;
             wrapper.appendChild(msgDiv);
 
-            // 如果是 AI 的訊息，加上朗讀按鈕
-            if (sender === "ai" && text !== "思考中...") {
+            // 檢查是否包含中文字
+            const hasChinese = /[\u4e00-\u9fa5]/.test(text);
+
+            // 如果是 AI 的訊息，且「不包含中文」，才加上朗讀按鈕與自動朗讀
+            if (sender === "ai" && text !== "思考中..." && !hasChinese) {
                 const speakBtn = document.createElement('button');
                 speakBtn.className = 'speak-btn';
                 speakBtn.innerText = "🔊 聽發音";
