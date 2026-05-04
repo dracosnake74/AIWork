@@ -151,9 +151,13 @@ async function sendUserMessage() {
 
 // --- 8. 結束對話並取得口說建議 ---
 async function endConversation() {
-    if (conversationHistory.length === 0) {
+    const userMsgs = conversationHistory.filter(m => m.role === 'user');
+    if (userMsgs.length === 0) {
         alert('還沒有對話內容，請先開始對話！');
         return;
+    }
+    if (userMsgs.length < 2) {
+        if (!confirm('對話內容較少，建議多練習幾句再結束。是否仍要取得建議？')) return;
     }
 
     // 隱藏結束按鈕，避免重複點擊
@@ -173,17 +177,17 @@ async function endConversation() {
 
     const loadingMsg = appendMessage("ai", "AI 正在分析你的口說表現...");
 
-    const prompt = `以下是英語口說練習對話紀錄：
+    const prompt = `你是英語口說評審。以下是學生的英語口說練習對話紀錄：
 
 ${transcript}
 
-請直接用繁體中文輸出以下兩個部分，不要有任何開場白或問候語，直接從標題開始：
+請嚴格按照以下格式用繁體中文輸出，第一個字必須是「###」，禁止任何開場白、問候語或總結語：
 
 ### ✅ 優點
-列出學生說得好的 1-2 點，每點舉出對話中的具體例子。
+- （從對話中舉出具體例子說明學生說得好的地方，1-2點）
 
 ### 📝 須加強的建議
-列出需要改進的文法或用字，針對每個錯誤給出正確說法與更自然的替換句型。`;
+- （列出學生的文法或用字錯誤，格式：「學生說：xxx → 建議改為：yyy，因為...」）`;
 
     try {
         const reply = await askAI(prompt, 2500);
