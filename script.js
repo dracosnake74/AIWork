@@ -19,10 +19,12 @@ async function askAI(promptText, maxTokens = 800) {
 // --- Markdown 轉 HTML ---
 function renderMarkdown(text) {
     return text
+        .replace(/^#{1,3}\s+(.+)/gm, '<div style="font-weight:700;color:var(--blue);margin:12px 0 4px;font-size:0.9rem;letter-spacing:0.3px">$1</div>')
         .replace(/\*\*(.+?)\*\*/g, '<strong style="color:var(--text);font-weight:600">$1</strong>')
-        .replace(/^[\*\-] +(.+)/gm, '<li>$1</li>')
-        .replace(/^\d+\.\s+(.+)/gm, '<li>$1</li>')
-        .replace(/(<li>[\s\S]*?<\/li>)/g, '<ul style="margin:6px 0 8px 16px;padding:0;list-style:disc">$1</ul>')
+        .replace(/^[\*\-] +(.+)/gm, '<li style="margin:3px 0">$1</li>')
+        .replace(/^\d+\.\s+(.+)/gm, '<li style="margin:3px 0">$1</li>')
+        .replace(/(<li[^>]*>[\s\S]*?<\/li>)/g, '<ul style="margin:6px 0 8px 16px;padding:0;list-style:disc">$1</ul>')
+        .replace(/^-{3,}$/gm, '<hr style="border:none;border-top:1px solid var(--border);margin:10px 0">')
         .replace(/\n\n/g, '<br><br>')
         .replace(/\n/g, '<br>');
 }
@@ -171,20 +173,20 @@ async function endConversation() {
 
     const loadingMsg = appendMessage("ai", "AI 正在分析你的口說表現...");
 
-    const prompt = `以下是一段英語口說練習的對話紀錄：
+    const prompt = `以下是英語口說練習對話紀錄：
 
 ${transcript}
 
-請用繁體中文，針對「學生」的發言，分三個部分提供完整的口說建議：
+請直接用繁體中文輸出以下兩個部分，不要有任何開場白或問候語，直接從標題開始：
 
-1. 優點：指出學生說得好的地方（1-2點）
-2. 文法與用字建議：指出錯誤並給出正確說法（列出具體例子）
-3. 進階表達：提供 1～2 個更自然道地的替換句型
+### ✅ 優點
+列出學生說得好的 1-2 點，每點舉出對話中的具體例子。
 
-語氣鼓勵、清楚易懂，每部分都要完整說明。`;
+### 📝 須加強的建議
+列出需要改進的文法或用字，針對每個錯誤給出正確說法與更自然的替換句型。`;
 
     try {
-        const reply = await askAI(prompt, 1500);
+        const reply = await askAI(prompt, 2500);
         loadingMsg.remove();
 
         const wrapper = document.createElement('div');
