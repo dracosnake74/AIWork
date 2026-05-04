@@ -1,24 +1,30 @@
 let currentTopic = "";
-let conversationHistory = []; // 記錄所有對話內容
+let conversationHistory = [];
 
-// --- 1. 核心 AI 呼叫 (改為呼叫自己的 Vercel 後端) ---
-async function askAI(promptText) {
-    // 網址直接改成我們剛剛建立的後端檔案路徑
+// --- 1. 核心 AI 呼叫 ---
+async function askAI(promptText, maxTokens = 800) {
     const response = await fetch('/api/gemini', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
             contents: [{ parts: [{ text: promptText }] }],
-            generationConfig: { maxOutputTokens: 800, temperature: 0.7 }
+            generationConfig: { maxOutputTokens: maxTokens, temperature: 0.7 }
         })
     });
-    
-    if (!response.ok) {
-        throw new Error(`連線錯誤：${response.status}`);
-    }
-    
+    if (!response.ok) throw new Error('連線錯誤：' + response.status);
     const data = await response.json();
     return data.candidates[0].content.parts[0].text;
+}
+
+// --- Markdown 轉 HTML ---
+function renderMarkdown(text) {
+    return text
+        .replace(/\*\*(.+?)\*\*/g, '<strong style="color:var(--text);font-weight:600">$1</strong>')
+        .replace(/^[\*\-] +(.+)/gm, '<li>$1</li>')
+        .replace(/^\d+\.\s+(.+)/gm, '<li>$1</li>')
+        .replace(/(<li>[\s\S]*?<\/li>)/g, '<ul style="margin:6px 0 8px 16px;padding:0;list-style:disc">$1</ul>')
+        .replace(/\n\n/g, '<br><br>')
+        .replace(/\n/g, '<br>');
 }
 
 // --- 2. 介面處理與功能掛載 (Append Message) ---
@@ -165,22 +171,17 @@ async function endConversation() {
 
     const loadingMsg = appendMessage("ai", "AI 正在分析你的口說表現...");
 
-        const prompt = `以下是一段英語口說練習的對話紀錄：
+    const prompt = `以下是一段英語口說練習的對話紀錄：
 
-\${transcript}
+${transcript}
 
 請用繁體中文，針對「學生」的發言，分三個部分提供完整的口說建議：
 
-**1. 優點**
-指出學生說得好的地方（1-2點）
+1. 優點：指出學生說得好的地方（1-2點）
+2. 文法與用字建議：指出錯誤並給出正確說法（列出具體例子）
+3. 進階表達：提供 1～2 個更自然道地的替換句型
 
-**2. 文法與用字建議**
-指出錯誤並給出正確說法（列出具體例子）
-
-**3. 進階表達**
-提供 1～2 個更自然道地的替換句型
-
-語氣鼓勵、清楚易懂。`;
+語氣鼓勵、清楚易懂，每部分都要完整說明。`;
 
     try {
         const reply = await askAI(prompt, 1500);
