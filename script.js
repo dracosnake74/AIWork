@@ -165,47 +165,56 @@ async function endConversation() {
 
     const loadingMsg = appendMessage("ai", "AI 正在分析你的口說表現...");
 
-    const prompt = `以下是一段英語口說練習的對話紀錄：
+        const prompt = `以下是一段英語口說練習的對話紀錄：
 
-${transcript}
+\${transcript}
 
-請用繁體中文，針對「學生」的發言，提供口說建議，包含：
-1. 優點：哪些地方說得好,缺點:那些地方需要加強
-2. 文法或用字建議：指出錯誤並給出正確說法
-3. 進階表達：提供 1～2 個更自然的替換句型
+請用繁體中文，針對「學生」的發言，分三個部分提供完整的口說建議：
 
-全部回覆限制在 300 字以內，語氣鼓勵、簡潔易懂。`;
+**1. 優點**
+指出學生說得好的地方（1-2點）
+
+**2. 文法與用字建議**
+指出錯誤並給出正確說法（列出具體例子）
+
+**3. 進階表達**
+提供 1～2 個更自然道地的替換句型
+
+語氣鼓勵、清楚易懂。`;
 
     try {
-        const reply = await askAI(prompt);
+        const reply = await askAI(prompt, 1500);
         loadingMsg.remove();
 
-        // 用特殊樣式顯示建議卡片
         const wrapper = document.createElement('div');
         wrapper.style.cssText = 'display:flex;flex-direction:column;align-items:flex-start;margin-bottom:10px;animation:msgIn 0.2s ease';
         const card = document.createElement('div');
-        card.style.cssText = `
-            background: linear-gradient(135deg, rgba(91,141,245,0.12), rgba(167,139,250,0.08));
-            border: 1px solid rgba(91,141,245,0.25);
-            border-radius: 14px;
-            border-bottom-left-radius: 4px;
-            padding: 14px 16px;
-            font-size: 0.88rem;
-            line-height: 1.7;
-            color: var(--text);
-            max-width: 90%;
-            white-space: pre-wrap;
-        `;
+        card.style.cssText = [
+            'background:linear-gradient(135deg,rgba(91,141,245,0.1),rgba(167,139,250,0.07))',
+            'border:1px solid rgba(91,141,245,0.22)',
+            'border-radius:14px',
+            'border-bottom-left-radius:4px',
+            'padding:16px 18px',
+            'font-size:0.88rem',
+            'line-height:1.75',
+            'color:var(--text2)',
+            'max-width:92%',
+        ].join(';');
+
         const label = document.createElement('div');
-        label.style.cssText = 'font-size:0.68rem;text-transform:uppercase;letter-spacing:1px;color:var(--blue);font-weight:600;margin-bottom:8px';
-        label.innerText = '📊 口說建議';
+        label.style.cssText = 'font-size:0.68rem;text-transform:uppercase;letter-spacing:1px;color:var(--blue);font-weight:600;margin-bottom:10px';
+        label.innerText = '📊 口說建議報告';
         card.appendChild(label);
-        card.appendChild(document.createTextNode(reply));
+
+        const body = document.createElement('div');
+        body.innerHTML = renderMarkdown(reply);
+        card.appendChild(body);
+
         wrapper.appendChild(card);
         chatBox.appendChild(wrapper);
         chatBox.scrollTop = chatBox.scrollHeight;
     } catch (error) {
-        loadingMsg.innerHTML = `<div class="ai-msg">建議生成失敗，請稍後再試。</div>`;
+        loadingMsg.innerHTML = '<div class="ai-msg">建議生成失敗，請稍後再試。</div>';
     }
 }
 
