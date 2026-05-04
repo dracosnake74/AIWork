@@ -1,36 +1,65 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <title>AI 英語對話導師</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 英語對話導師</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-        <nav style="margin-bottom: 20px; text-align: left;">
-        <a href="writing.html" style="text-decoration: none; color: #0084ff;">⬅️ 寫作模式</a>
-    </nav>
-    <h2>AI 英語對話導師</h2>
-    
-    <div id="chat-box">
-        <div class="ai-msg">AI: Hello! 請點擊下方主題開始練習英語對話。</div>
-    </div>
 
-    <div id="theme-buttons">
-        <button onclick="startConversation('旅遊')">旅遊 (Travel)</button>
-        <button onclick="startConversation('美食')">美食 (Food)</button>
-    </div>
+<nav class="top-nav">
+  <a class="nav-brand" href="index.html">AI <span>英語</span>學習</a>
+  <div class="nav-links">
+    <a class="nav-link active" href="index.html">💬 對話練習</a>
+    <a class="nav-link" href="beginner.html">👶 北鼻老師</a>
+    <a class="nav-link" href="writing.html">✍️ 寫作評分</a>
+    <a class="nav-link" href="guessing-game.html">🎮 猜謎遊戲</a>
+  </div>
+</nav>
 
-<hr>
-    
-    <div id="input-area">
-        <input type="text" id="user-input" placeholder="Please speak or type in English...">
-        <button id="mic-btn" class="icon-btn" onclick="startVoiceRecognition()" title="Speak">🎤</button>
-        <button id="send-btn" class="icon-btn" onclick="sendUserMessage()" title="Send">Send</button>
-    </div>
+<div class="page-wrap">
+  <div class="page-heading">
+    <h1>AI 英語對話導師</h1>
+    <p class="subtitle">選擇主題，開始用英文練習對話</p>
+  </div>
 
+  <div class="pill-group" id="theme-buttons">
+    <button class="pill-btn" onclick="startConversation('旅遊')">✈️ 旅遊 Travel</button>
+    <button class="pill-btn" onclick="startConversation('美食')">🍜 美食 Food</button>
+  </div>
 
-    <script src="script.js"></script>
+  <div id="chat-box">
+    <div class="ai-msg">Hello! 請點擊上方主題開始練習英語對話。</div>
+  </div>
+
+  <!-- 結束對話按鈕，對話開始後才顯示 -->
+  <div id="end-btn-wrap" style="display:none;justify-content:center;margin-bottom:0.75rem">
+    <button onclick="endConversation()" style="
+      background:none;
+      border:1px solid rgba(248,113,113,0.35);
+      color:var(--red);
+      border-radius:50px;
+      padding:7px 20px;
+      font-size:0.8rem;
+      font-weight:500;
+      cursor:pointer;
+      font-family:'DM Sans',sans-serif;
+      transition:all 0.15s;
+    "
+    onmouseover="this.style.background='rgba(248,113,113,0.1)'"
+    onmouseout="this.style.background='none'">
+      ⏹ 結束對話並取得口說建議
+    </button>
+  </div>
+
+  <div id="input-area">
+    <input type="text" id="user-input" placeholder="Please speak or type in English...">
+    <button id="mic-btn" class="icon-btn" onclick="startVoiceRecognition()" title="語音輸入">🎤</button>
+    <button id="send-btn" class="icon-btn" onclick="sendUserMessage()">Send</button>
+  </div>
+</div>
+
+<script src="script.js"></script>
 </body>
-
 </html>
-
