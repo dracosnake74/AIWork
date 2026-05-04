@@ -2,7 +2,7 @@ let currentTopic = "";
 let conversationHistory = [];
 
 // --- 1. 核心 AI 呼叫 ---
-async function askAI(promptText, maxTokens = 800) {
+async function askAI(promptText, maxTokens = 2000) {
     const response = await fetch('/api/gemini', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
