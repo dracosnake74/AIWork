@@ -1,4 +1,5 @@
 let currentTopic = "";
+let conversationHistory = []; // 記錄所有對話內容
 
 // --- 1. 核心 AI 呼叫 (改為呼叫自己的 Vercel 後端) ---
 async function askAI(promptText) {
@@ -98,8 +99,11 @@ function startVoiceRecognition() {
 // --- 6. 啟動對話 ---
 async function startConversation(topic) {
     currentTopic = topic;
+    conversationHistory = []; // 重置對話紀錄
     const chatBox = document.getElementById('chat-box');
-    chatBox.innerHTML = ''; 
+    chatBox.innerHTML = '';
+    // 顯示結束按鈕
+    document.getElementById('end-btn-wrap').style.display = 'flex';
     appendMessage("user", `Let's talk about ${topic}.`);
     const loadingMsg = appendMessage("ai", "Teacher is preparing a topic...");
     
@@ -107,8 +111,9 @@ async function startConversation(topic) {
     
     try {
         const reply = await askAI(startPrompt);
-        loadingMsg.remove(); // 移除 loading 訊息
-        appendMessage("ai", reply); // 呼叫 AI 回覆，這會自動觸發語音和翻譯按鈕
+        loadingMsg.remove();
+        appendMessage("ai", reply);
+        conversationHistory.push({ role: 'ai', text: reply });
     } catch (error) {
         loadingMsg.innerHTML = `<div class="ai-msg">連線發生錯誤，請檢查網路。</div>`;
     }
@@ -120,6 +125,7 @@ async function sendUserMessage() {
     const text = inputField.value.trim();
     if (!text) return;
     appendMessage("user", text);
+    conversationHistory.push({ role: 'user', text });
     inputField.value = '';
     
     const loadingMsg = appendMessage("ai", "...");
@@ -129,8 +135,77 @@ async function sendUserMessage() {
         const reply = await askAI(prompt);
         loadingMsg.remove();
         appendMessage("ai", reply);
+        conversationHistory.push({ role: 'ai', text: reply });
     } catch (error) {
         loadingMsg.innerHTML = `<div class="ai-msg">連線發生錯誤，請檢查網路。</div>`;
+    }
+}
+
+// --- 8. 結束對話並取得口說建議 ---
+async function endConversation() {
+    if (conversationHistory.length === 0) {
+        alert('還沒有對話內容，請先開始對話！');
+        return;
+    }
+
+    // 隱藏結束按鈕，避免重複點擊
+    document.getElementById('end-btn-wrap').style.display = 'none';
+
+    // 整理對話紀錄成文字
+    const transcript = conversationHistory
+        .map(m => (m.role === 'user' ? '學生：' : 'AI老師：') + m.text)
+        .join('\n');
+
+    // 在聊天框加入分隔與 loading
+    const chatBox = document.getElementById('chat-box');
+    const divider = document.createElement('div');
+    divider.style.cssText = 'text-align:center;color:var(--text3);font-size:0.75rem;padding:8px 0;border-top:1px solid var(--border);margin-top:4px';
+    divider.innerText = '── 對話結束 · AI 口說建議 ──';
+    chatBox.appendChild(divider);
+
+    const loadingMsg = appendMessage("ai", "AI 正在分析你的口說表現...");
+
+    const prompt = `以下是一段英語口說練習的對話紀錄：
+
+${transcript}
+
+請用繁體中文，針對「學生」的發言，提供口說建議，包含：
+1. 優點：哪些地方說得好
+2. 文法或用字建議：指出錯誤並給出正確說法
+3. 進階表達：提供 1～2 個更自然的替換句型
+
+全部回覆限制在 150 字以內，語氣鼓勵、簡潔易懂。`;
+
+    try {
+        const reply = await askAI(prompt);
+        loadingMsg.remove();
+
+        // 用特殊樣式顯示建議卡片
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = 'display:flex;flex-direction:column;align-items:flex-start;margin-bottom:10px;animation:msgIn 0.2s ease';
+        const card = document.createElement('div');
+        card.style.cssText = `
+            background: linear-gradient(135deg, rgba(91,141,245,0.12), rgba(167,139,250,0.08));
+            border: 1px solid rgba(91,141,245,0.25);
+            border-radius: 14px;
+            border-bottom-left-radius: 4px;
+            padding: 14px 16px;
+            font-size: 0.88rem;
+            line-height: 1.7;
+            color: var(--text);
+            max-width: 90%;
+            white-space: pre-wrap;
+        `;
+        const label = document.createElement('div');
+        label.style.cssText = 'font-size:0.68rem;text-transform:uppercase;letter-spacing:1px;color:var(--blue);font-weight:600;margin-bottom:8px';
+        label.innerText = '📊 口說建議';
+        card.appendChild(label);
+        card.appendChild(document.createTextNode(reply));
+        wrapper.appendChild(card);
+        chatBox.appendChild(wrapper);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    } catch (error) {
+        loadingMsg.innerHTML = `<div class="ai-msg">建議生成失敗，請稍後再試。</div>`;
     }
 }
 
