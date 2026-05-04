@@ -177,17 +177,27 @@ async function endConversation() {
 
     const loadingMsg = appendMessage("ai", "AI 正在分析你的口說表現...");
 
-    const prompt = `你是英語口說評審。以下是學生的英語口說練習對話紀錄：
-
+    const prompt = `對話紀錄如下：
 ${transcript}
 
-1.請嚴格按照以下格式用繁體中文輸出，不用開場白：
-2.列出對話中的優點
-3.列出需加強的建議- （列出學生的文法或用字錯誤，格式：「學生說：xxx → 建議改為：yyy，因為...」）`;
+請直接輸出以下格式，不得有任何前言：
+
+### ✅ 優點
+- [優點1，引用學生原句]
+- [優點2]
+
+### 📝 須加強
+- 學生說：[原句] → 改為：[正確句]，原因：[一句說明]
+- 學生說：[原句] → 改為：[正確句]，原因：[一句說明]
+
+每點限40字內，只列最重要的2點。`;
 
     try {
-        const reply = await askAI(prompt, 2500);
+        let reply = await askAI(prompt, 4000);
         loadingMsg.remove();
+        // 強制移除 ### 之前的所有開場白文字
+        const firstSection = reply.indexOf('###');
+        if (firstSection > 0) reply = reply.slice(firstSection);
 
         const wrapper = document.createElement('div');
         wrapper.style.cssText = 'display:flex;flex-direction:column;align-items:flex-start;margin-bottom:10px;animation:msgIn 0.2s ease';
