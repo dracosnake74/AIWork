@@ -8,14 +8,12 @@ async function evaluateWriting() {
         return;
     }
 
-    // 1. 顯示評分中狀態
     resultArea.style.display = "block";
     document.getElementById('cefr-level').innerText = "Analyzing...";
     document.getElementById('total-score').innerText = "--";
     document.getElementById('grammar-check').innerText = "Checking...";
     document.getElementById('suggestions').innerText = "Generating...";
 
-    // 2. 設定給 AI 的指令 (要求嚴格的 JSON 格式)
     const prompt = `
         You are an expert English writing examiner. 
         Evaluate this article:
@@ -24,6 +22,7 @@ async function evaluateWriting() {
 
         Return ONLY a JSON object with these keys:
         {
+            "請用繁體中文回覆",
             "cefr": "Level (A1-C2)",
             "score": "Total score out of 100 (number only)",
             "grammar": "Point out grammar mistakes and corrections",
@@ -32,7 +31,6 @@ async function evaluateWriting() {
     `;
 
     try {
-        // --- 核心修正：呼叫您建立的 Vercel 後端 API，不再直接呼叫 Google ---
         const response = await fetch('/api/gemini', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -44,30 +42,43 @@ async function evaluateWriting() {
         }
 
         const data = await response.json();
-        
-        // 取得 AI 回傳的文字
         let rawText = data.candidates[0].content.parts[0].text;
-        
-        // --- 清理 AI 可能帶有的 Markdown 標籤 ---
         let cleanJson = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
-        
-        // 解析成 JavaScript 物件
         const result = JSON.parse(cleanJson);
 
-        // 3. 填入資料到 HTML 元件中
         document.getElementById('cefr-level').innerText = `CEFR: ${result.cefr}`;
-        document.getElementById('total-score').innerText = result.score; // 顯示總分
+        document.getElementById('total-score').innerText = result.score;
         document.getElementById('grammar-check').innerText = result.grammar;
         document.getElementById('suggestions').innerText = result.advice;
 
-        // 4. 加分效果：根據分數改變顏色
         const scoreElement = document.getElementById('total-score');
         if (result.score >= 80) {
-            scoreElement.style.color = "#2e7d32"; // 綠色 (優)
+            scoreElement.style.color = "#2e7d32";
         } else if (result.score >= 60) {
-            scoreElement.style.color = "#f9a825"; // 黃色 (及格)
+            scoreElement.style.color = "#f9a825";
         } else {
-            scoreElement.style.color = "#d32f2f"; // 紅色 (待加強)
+            scoreElement.style.color = "#d32f2f";
+        }
+
+        // 隱藏 token 計數：連點三下頁面標題 h1 顯示/隱藏
+        const usage = data.usageMetadata || null;
+        const h1 = document.querySelector('h1');
+        if (h1 && !h1._tokenListenerAdded) {
+            h1._tokenListenerAdded = true;
+            let clicks = 0, timer = null;
+            h1.style.cursor = 'default';
+            h1.addEventListener('click', function () {
+                clicks++;
+                clearTimeout(timer);
+                timer = setTimeout(function () { clicks = 0; }, 600);
+                if (clicks >= 3) {
+                    clicks = 0;
+                    const on = h1.dataset.showing === '1';
+                    h1.innerText = on ? 'AI 英語寫作評分'
+                        : (usage ? '🔢 本次使用 ' + (usage.totalTokenCount || 0) + ' tokens' : '🔢 Token 資料不可用');
+                    h1.dataset.showing = on ? '0' : '1';
+                }
+            });
         }
 
     } catch (error) {
