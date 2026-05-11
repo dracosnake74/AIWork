@@ -60,23 +60,24 @@ async function evaluateWriting() {
             scoreElement.style.color = "#d32f2f";
         }
 
-        // 隱藏 token 計數：連點三下頁面標題 h1 顯示/隱藏
+        // 隱藏 token 計數：連點三下 CEFR 標籤三下顯示
         const usage = data.usageMetadata || null;
-        const h1 = document.querySelector('h1');
-        if (h1 && !h1._tokenListenerAdded) {
-            h1._tokenListenerAdded = true;
+        const cefrEl = document.getElementById('cefr-level');
+        if (cefrEl && !cefrEl._tokenListenerAdded) {
+            cefrEl._tokenListenerAdded = true;
             let clicks = 0, timer = null;
-            h1.style.cursor = 'default';
-            h1.addEventListener('click', function () {
+            cefrEl.style.cursor = 'pointer';
+            cefrEl.title = '連點三下查看 Token 用量';
+            cefrEl.addEventListener('click', function () {
                 clicks++;
                 clearTimeout(timer);
                 timer = setTimeout(function () { clicks = 0; }, 600);
                 if (clicks >= 3) {
                     clicks = 0;
-                    const on = h1.dataset.showing === '1';
-                    h1.innerText = on ? 'AI 英語寫作評分'
-                        : (usage ? '🔢 本次使用 ' + (usage.totalTokenCount || 0) + ' tokens' : '🔢 Token 資料不可用');
-                    h1.dataset.showing = on ? '0' : '1';
+                    const on = cefrEl.dataset.showing === '1';
+                    cefrEl.innerText = on ? 'CEFR: ' + result.cefr
+                        : (usage ? '🔢 ' + (usage.totalTokenCount || 0) + ' tokens' : '🔢 無資料');
+                    cefrEl.dataset.showing = on ? '0' : '1';
                 }
             });
         }
