@@ -1,7 +1,7 @@
 async function evaluateWriting() {
-    const title = document.getElementById('article-title').value;
-    const content = document.getElementById('article-content').value;
-    const resultArea = document.getElementById('result-area');
+    var title = document.getElementById('article-title').value;
+    var content = document.getElementById('article-content').value;
+    var resultArea = document.getElementById('result-area');
 
     if (!content.trim()) { alert('Please paste your content first!'); return; }
 
@@ -11,32 +11,33 @@ async function evaluateWriting() {
     document.getElementById('grammar-check').innerText = 'Checking...';
     document.getElementById('suggestions').innerText = 'Generating...';
 
-    const prompt = `你是一位專業的英語寫作評審。請評估以下文章：
-標題：「${title}」
-內容：「${content}」
-
-請用繁體中文回覆，且 grammar 和 advice 各自嚴格限制在 100 個字以內。
-只回傳 JSON，不要加任何說明：
-{
-  "cefr": "等級 (A1-C2)",
-  "score": "100分制總分（只填數字）",
-  "grammar": "指出文法錯誤與修正建議（繁體中文，100字以內）",
-  "advice": "整體改進建議（繁體中文，100字以內）"
-}`;
+    var prompt = '你是一位專業的英語寫作評審。請評估以下文章：\n'
+        + '標題：「' + title + '」\n'
+        + '內容：「' + content + '」\n\n'
+        + '請用繁體中文回覆，grammar 和 advice 各自限制在 80 字以內。\n'
+        + '只回傳 JSON，不要任何說明或 markdown：\n'
+        + '{"cefr":"等級A1-C2","score":"數字","grammar":"文法建議","advice":"改進建議"}';
 
     try {
-        const response = await fetch('/api/gemini', {
+        var response = await fetch('/api/gemini', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { maxOutputTokens: 1000, temperature: 0.4 } })
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: { maxOutputTokens: 600, temperature: 0.3 }
+            })
         });
+
         if (!response.ok) throw new Error('伺服器連線錯誤：' + response.status);
 
-        const data = await response.json();
-        let rawText = data.candidates[0].content.parts[0].text;
-        let cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-        const result = JSON.parse(cleanJson);
+        var data = await response.json();
+        var rawText = data.candidates[0].content.parts[0].text;
+
+        // 找到 { 和最後一個 } 直接截取，避免 markdown 干擾
+        var start = rawText.indexOf('{');
+        var end = rawText.lastIndexOf('}');
+        if (start === -1 || end === -1) throw new Error('回應格式錯誤');
+        var result = JSON.parse(rawText.substring(start, end + 1));
 
         var cefrEl = document.getElementById('cefr-level');
         cefrEl.innerText = 'CEFR: ' + result.cefr;
@@ -47,10 +48,10 @@ async function evaluateWriting() {
         document.getElementById('grammar-check').innerText = result.grammar;
         document.getElementById('suggestions').innerText = result.advice;
 
-        const scoreEl = document.getElementById('total-score');
+        var scoreEl = document.getElementById('total-score');
         scoreEl.style.color = result.score >= 80 ? 'var(--green)' : result.score >= 60 ? 'var(--orange)' : 'var(--red)';
 
-        // Hidden token counter (triple-click CEFR badge)
+        // 隱藏 token 計數（連點三下 CEFR 標籤）
         var usage = data.usageMetadata || null;
         (function(el, u) {
             var clicks = 0, timer = null;
@@ -70,6 +71,6 @@ async function evaluateWriting() {
     } catch (error) {
         console.error('評分過程發生錯誤:', error);
         document.getElementById('cefr-level').innerText = 'Error';
-        document.getElementById('suggestions').innerText = '評分失敗，請檢查網路連線或稍後再試。';
+        document.getElementById('suggestions').innerText = '評分失敗：' + error.message;
     }
 }
