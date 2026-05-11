@@ -13,6 +13,7 @@ async function askAI(promptText, maxTokens = 2000) {
     });
     if (!response.ok) throw new Error('連線錯誤：' + response.status);
     const data = await response.json();
+    askAI._lastUsage = data.usageMetadata || null;
     return data.candidates[0].content.parts[0].text;
 }
 
@@ -107,7 +108,8 @@ function startVoiceRecognition() {
 // --- 6. 啟動對話 ---
 async function startConversation(topic) {
     currentTopic = topic;
-    conversationHistory = []; // 重置對話紀錄
+    conversationHistory = [];
+    askAI._totalTokens = 0;
     const chatBox = document.getElementById('chat-box');
     chatBox.innerHTML = '';
     // 顯示結束按鈕
@@ -144,6 +146,7 @@ async function sendUserMessage() {
         loadingMsg.remove();
         appendMessage("ai", reply);
         conversationHistory.push({ role: 'ai', text: reply });
+        if (askAI._lastUsage) askAI._totalTokens = (askAI._totalTokens||0)+(askAI._lastUsage.totalTokenCount||0);
     } catch (error) {
         loadingMsg.innerHTML = `<div class="ai-msg">連線發生錯誤，請檢查網路。</div>`;
     }
@@ -217,6 +220,22 @@ ${transcript}
         const label = document.createElement('div');
         label.style.cssText = 'font-size:0.68rem;text-transform:uppercase;letter-spacing:1px;color:var(--blue);font-weight:600;margin-bottom:10px';
         label.innerText = '📊 口說建議報告';
+        (function(lbl){
+            var clicks=0,timer=null;
+            lbl.style.cursor='default';
+            lbl.addEventListener('click',function(){
+                clicks++;clearTimeout(timer);
+                timer=setTimeout(function(){clicks=0;},600);
+                if(clicks>=3){
+                    clicks=0;
+                    var ct=askAI._totalTokens||0;
+                    var ft=askAI._lastUsage?(askAI._lastUsage.totalTokenCount||0):0;
+                    var on=lbl.dataset.showing==='1';
+                    lbl.innerText=on?'📊 口說建議報告':'🔢 對話 '+ct+' + 建議 '+ft+' = '+(ct+ft)+' tokens';
+                    lbl.dataset.showing=on?'0':'1';
+                }
+            });
+        })(label);
         card.appendChild(label);
 
         const body = document.createElement('div');
